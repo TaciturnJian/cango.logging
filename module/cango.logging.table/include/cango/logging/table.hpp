@@ -7,8 +7,12 @@
 
 namespace cango::logging {
 
-	template<typename logger_type>
-	class maybe_logger : public enable_log_if<maybe_logger<logger_type>> {
+	template<typename TLogger>
+	class maybe_logger : public enable_log_if<maybe_logger<TLogger>> {
+	public:
+		using logger_type = TLogger;
+
+	private:
 		std::optional<std::shared_ptr<logger_type>> logger;
 
 	public:
@@ -24,8 +28,12 @@ namespace cango::logging {
 		}
 	};
 
-	template<typename logger_type = basic_logger>
+	template<typename TLogger = basic_logger>
 	class table {
+	public:
+		using logger_type = TLogger;
+
+	private:
 		std::unordered_map<std::string, std::shared_ptr<logger_type>> loggers;
 
 	public:
@@ -54,17 +62,17 @@ namespace cango::logging {
 		}
 	};
 
-	template<typename logger_type = atomic_logger>
+	template<typename logger_type = basic_logger>
 	class atomic_table : table<logger_type> {
 		std::mutex locker;
 
 	public:
-		std::shared_ptr<atomic_logger> get(const std::string& name) {
+		std::shared_ptr<logger_type> get(const std::string& name) {
 			std::lock_guard lock{ locker };
 			return table<logger_type>::get(name);
 		}
 
-		void set(const std::string& name, std::shared_ptr<atomic_logger> logger) {
+		void set(const std::string& name, std::shared_ptr<logger_type> logger) {
 			std::lock_guard lock{ locker };
 			return table<logger_type>::set(name, std::move(logger));
 		}
@@ -74,12 +82,12 @@ namespace cango::logging {
 			return table<logger_type>::remove(name);
 		}
 
-		atomic_logger& select(const std::string& name) {
+		logger_type& select(const std::string& name) {
 			std::lock_guard lock{ locker };
 			return table<logger_type>::select(name);
 		}
 
-		maybe_logger<atomic_logger> maybe(const std::string& name) {
+		maybe_logger<logger_type> maybe(const std::string& name) {
 			std::lock_guard lock{ locker };
 			return table<logger_type>::maybe(name);
 		}

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string_view>
 #include <cstddef>
 #include <format>
+#include <string_view>
 
 #include "output_stream.hpp"
 
@@ -14,7 +14,7 @@ namespace cango::logging {
     /// @param format 输出格式
     /// @param args 格式参数
     /// @return 消息长度
-    template<output_stream stream_type, typename... Args>
+    template<is_output_stream stream_type, typename... Args>
     std::size_t log(stream_type &stream, const std::string_view format, Args &&... args) {
         const auto message = std::vformat(format, std::make_format_args(args...));
         stream << message;
@@ -29,8 +29,8 @@ namespace cango::logging {
     /// @param format 输出格式
     /// @param args 格式参数
     /// @return 消息长度，当条件不成立时返回 0
-    template<output_stream stream_type, typename... Args>
-    std::size_t log_if(bool condition, stream_type &stream, const std::string_view format, Args &&... args) {
+    template<is_output_stream stream_type, typename... Args>
+    std::size_t log_if(const bool condition, stream_type &stream, const std::string_view format, Args &&... args) {
         if (!condition) return 0;
         return log(stream, format, std::forward<Args>(args)...);
     }
@@ -43,7 +43,7 @@ namespace cango::logging {
     /// @param format 输出格式
     /// @param args 格式参数
     /// @return 消息长度，当条件不成立时返回 0
-    template<bool condition, output_stream stream_type, typename... Args>
+    template<bool condition, is_output_stream stream_type, typename... Args>
     std::size_t log_if(stream_type &stream, const std::string_view format, Args &&... args) {
         if constexpr (!condition) return 0;
         return log(stream, format, std::forward<Args>(args)...);

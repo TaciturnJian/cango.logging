@@ -1,5 +1,10 @@
 ﻿
 doc/
 test/
+out/
+build/
+.idea/
+.vs/
+.code/
 
 Doxyfile

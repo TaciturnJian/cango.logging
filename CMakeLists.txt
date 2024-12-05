@@ -1,21 +1,22 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(cango.logging)
-include(cango)
 
-cango_project_cxx_standard(26)
+add_subdirectory(module/cango.logging.core)
+add_subdirectory(module/cango.logging.rolling)
+add_subdirectory(module/cango.logging.table)
 
-cango_project_submodule(core)
-cango_project_submodule(std_log)
-cango_project_submodule(rolling)
-cango_project_submodule(table)
-
-cango_cpp_ho(${PROJECT_NAME})
+add_library(cango_logging INTERFACE)
+add_library(cango::logging ALIAS cango_logging)
+target_include_directories(cango_logging INTERFACE include)
 target_link_libraries(cango_logging INTERFACE
 	cango::logging::core
-	cango::logging::std_log
 	cango::logging::rolling
 	cango::logging::table
 )
 
-cango_cpp_ho_test(test)
+if (PROJECT_IS_TOP_LEVEL)
+	add_executable(cango_logging_test test/test.cpp)
+	target_link_libraries(cango_logging_test PRIVATE cango::logging)
+	set_target_properties(cango_logging_test PROPERTIES CXX_STANDARD 20)
+endif()
