@@ -5,7 +5,7 @@
 #include "logger.hpp"
 
 namespace cango::logging {
-    template<typename TLogger = basic_logger>
+    template<typename TLogger>
     class table {
     public:
         using logger_type = TLogger;
@@ -32,7 +32,7 @@ namespace cango::logging {
         }
     };
 
-    template<typename logger_type = basic_logger>
+    template<typename logger_type>
     class atomic_table : table<logger_type> {
         std::mutex locker;
 

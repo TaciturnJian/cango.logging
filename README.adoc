@@ -1,0 +1,30 @@
+= cango.logging 简介
+
+cango.logging 是一个 c++ header-only 日志库，提供了简单的日志功能。
+
+本库用于如下日志场景：
+
+[source,c++]
+----
+// some module requires a logger to output some errors or etc
+// before using this module, we pass a logger to it
+some_module::init_logger();
+
+// and we call the functions in the module as usual
+// some exceptions that are handled internally will be logged, we can track them in the log file
+auto result = some_module::func();
+
+// or if we don't want to log the exceptions, we can disable logging by doing nothing before calling the functions
+
+// in the module, we can log some messages, with format feature provided by c++20
+bool some_module::func() {
+    some_module::get_logger().log("func is called, {}", "hello log!");
+
+    return true;
+}
+----
+
+== 快速上手
+
+TODO
+

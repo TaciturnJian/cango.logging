@@ -1,0 +1,3 @@
+#include(CMakeFindDependencyMacro)
+
+include("${CMAKE_CURRENT_LIST_DIR}/@module_library_name@Targets.cmake")
