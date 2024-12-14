@@ -13,10 +13,21 @@ project(${module_project_name}
 	LANGUAGES CXX
 )
 
+option(CANGO_BE_QUIET "是否不打印状态日志" ON)
+option(CANGO_BUILD_TEST "是否构建测试" OFF)
+
+macro(cango_status message)
+	if (NOT ${CANGO_BE_QUIET})
+		message(STATUS "${module_project_name}> ${message}")
+	endif()
+endmacro()
+
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
+	cango_status("缺失构建类型，设置为 Release")
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
+cango_status("配置头文件库 ${module_library_name}")
 add_library(${module_library_name} INTERFACE)
 add_library(${module_library_alias} ALIAS ${module_library_name})
 target_include_directories(cango_logging
@@ -24,17 +35,19 @@ target_include_directories(cango_logging
 )
 set_target_properties(${module_library_name} PROPERTIES CXX_STANDARD 20)
 if (MSVC)
+	cango_status("为 MSVC 设置 UTF-8 编码")
 	target_compile_options(${module_library_name} INTERFACE /utf-8)
 endif()
 
-if (PROJECT_IS_TOP_LEVEL)
-    add_executable(${module_library_name}_test test/test.cpp)
-    target_link_libraries(${module_library_name}_test PRIVATE ${module_library_alias})
-    set_target_properties(${module_library_name}_test PROPERTIES CXX_STANDARD 20)
+if (${CANGO_BUILD_TEST})
+	cango_status("配置构建测试")
+	enable_testing()
+	add_subdirectory(test)
 endif ()
 
 cango_init_install_info()
 
+cango_status("配置安装头文件库 ${module_library_name}")
 install(TARGETS ${module_library_name}
     EXPORT ${module_export_name}
 	${module_target_destinations}
