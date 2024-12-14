@@ -141,10 +141,8 @@ namespace cango::logging {
 
         template<typename... Args>
         std::size_t log(const std::string_view format, Args &&... args) {
-            if (!logger.has_value()) return 0;
-            auto &logger_ptr = *logger;
-            if (!logger_ptr) return 0;
-            return logger_ptr->log(format, std::forward<Args>(args)...);
+            if (!logger.has_value() || *logger == nullptr) return 0;
+            return (*logger)->log(format, std::forward<Args>(args)...);
         }
     };
 
