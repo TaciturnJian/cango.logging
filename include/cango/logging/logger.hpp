@@ -73,9 +73,10 @@ namespace cango::logging {
         }
     };
 
+    /// @brief 为类添加条件日志功能
+    /// @tparam Super *CRTP* 提供了静态函数 @c log 的父类
     template<typename Super>
-    class enable_static_log_if {
-    public:
+    struct enable_static_log_if {
         template<typename... Args>
         std::size_t log_if(const bool condition, const std::string_view format, Args &&... args) {
             if (!condition) return 0;
@@ -111,6 +112,7 @@ namespace cango::logging {
         }
     };
 
+    /// @brief 在日志消息前添加时间戳，在消息尾附加换行符的日志器
     template<is_output_stream TOStream = runtime_output_stream>
     class cango_logger : public enable_log_if<cango_logger<TOStream> >, public basic_logger<TOStream> {
     public:
@@ -127,6 +129,7 @@ namespace cango::logging {
         }
     };
 
+    /// @brief 可能为空的日志器，当日志器为空时不输出任何消息
     template<typename TLogger>
     class maybe_logger : public enable_log_if<maybe_logger<TLogger> > {
     public:
@@ -145,21 +148,4 @@ namespace cango::logging {
             return (*logger)->log(format, std::forward<Args>(args)...);
         }
     };
-
-    /// @brief 创建日志器，给出指向日志器的 @c std::unique_ptr
-    template<template<typename T> typename TLogger, is_output_stream TOStream>
-    std::unique_ptr<TLogger<TOStream> > own_logger(std::shared_ptr<TOStream> stream) {
-        return std::make_unique<TLogger<TOStream> >(std::move(stream));
-    }
-
-    /// @brief 创建日志器，给出指向日志器的 @c std::shared_ptr
-    template<template<typename T> typename TLogger, is_output_stream TOStream>
-    std::shared_ptr<TLogger<TOStream> > share_logger(std::shared_ptr<TOStream> stream) {
-        return std::make_shared<TLogger<TOStream> >(std::move(stream));
-    }
-
-    template<template<typename T> typename TLogger, is_output_stream TOStream>
-    maybe_logger<TLogger<TOStream> > make_maybe(std::shared_ptr<TOStream> stream) {
-        return maybe_logger<TLogger<TOStream> >{std::make_optional(share_logger<TLogger, TOStream>(std::move(stream)))};
-    }
 }

@@ -1,4 +1,6 @@
+#include <atomic>
 #include <iostream>
+#include <thread>
 
 #include <cango/logging.hpp>
 
@@ -7,7 +9,7 @@ using namespace cango::logging;
 namespace {}
 
 int main() try {
-    atomic_table<cango_logger<>> loggers;
+    atomic_table<cango_logger<> > loggers;
     std::atomic_bool interrupt{false};
 
     std::thread ticking{
@@ -28,7 +30,7 @@ int main() try {
     auto combined_stream = vcombine(
         std::make_shared<std_cout>(),
         std::make_shared<atomic_ofstream>("log.txt")
-        );
+    );
     const auto logger = share_logger<cango_logger>(std::move(combined_stream));
 
     std::this_thread::sleep_for(std::chrono::seconds{3});

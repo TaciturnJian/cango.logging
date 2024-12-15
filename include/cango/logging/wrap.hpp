@@ -42,12 +42,12 @@ namespace cango::logging {
     /// @tparam TImpl 输出流类型
     /// @note 如果你尝试使用此类封装 @c runtime_output_stream 类型的输出流，将会导致编译错误
     template<is_not_type_erased_output_stream TImpl>
-    class wrap_output_stream<TImpl, wrap_type::make_atomic> final : TImpl {
+    class wrap_output_stream<TImpl, wrap_type::make_atomic> : TImpl {
     public:
         using impl_type = TImpl;
 
     private:
-        std::mutex mutex;
+        std::mutex mutex{};
 
     public:
         using impl_type::impl_type;

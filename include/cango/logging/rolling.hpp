@@ -1,60 +1,51 @@
 ﻿#pragma once
 
+#include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 
 #include "logger.hpp"
+#include "wrap.hpp"
 
 namespace cango::logging {
-    /// @brief 代表可以滚动的对象，要求使用前缀 ++ 滚动，返回自身引用
-    template<typename object_type>
-    concept rolling_object = requires(object_type &object) {
-        { ++object } -> std::same_as<object_type &>;
-    };
-
-    /// @brief 滚动的文件名，格式为 <prefix><id>.log
-    struct rolling_filename {
-        std::string prefix;
-        std::uint64_t id{0};
-
-        [[nodiscard]] std::string get_filename() const { return std::format("{}{}.log", prefix, id); }
-
-        rolling_filename &operator++() {
-            ++id;
-            return *this;
-        }
-    };
-
     /// @brief 使用 @c rolling_filename 的滚动文件流，当文件大小超过 10MB 时滚动
     /// @warning 在文件流不可用时使用 std::cerr 输出
-    class runtime_rolling_fstream_or_cerr final : public runtime_output_stream {
+    class rolling_ofstream {
     public:
         static constexpr auto kb = 1024;
         static constexpr auto mb = 1024 * kb;
         static constexpr std::size_t max_size = 10 * mb;
-
-        rolling_filename filename;
-
-        explicit runtime_rolling_fstream_or_cerr(std::string prefix) :
-            filename{std::move(prefix)} {}
+        using file_path_provider = std::function<std::filesystem::path()>;
 
     private:
+        file_path_provider path_provider;
+        std::filesystem::path current_file{};
         std::size_t current_size{0};
         std::shared_ptr<std::ofstream> stream{};
 
     public:
-        void output(std::string_view message) override {
-            if (!stream || current_size >= max_size) {
-                ++filename;
+        explicit rolling_ofstream(file_path_provider pathProvider) noexcept :
+            path_provider(std::move(pathProvider)) {}
+
+        [[nodiscard]] bool is_open() const noexcept { return stream != nullptr && stream->is_open(); }
+
+        void output(const std::string_view message) {
+            if (stream == nullptr || current_size >= max_size) {
+                current_file = path_provider();
                 current_size = 0;
-                stream = std::make_shared<std::ofstream>(filename.get_filename());
+                stream = std::make_shared<std::ofstream>(current_file);
             }
 
-            if (!stream->is_open() || stream->bad()) std::cerr << message;
-            else {
+            if (stream->is_open() && !stream->bad()) {
                 *stream << message;
                 current_size += message.size();
             }
+            else std::cerr << message;
         }
     };
+
+    using runtime_rolling_ofstream = wrap_output_stream<rolling_ofstream, wrap_type::erase_type>;
+    using atomic_rolling_ofstream = wrap_output_stream<rolling_ofstream, wrap_type::make_atomic>;
+    using runtime_atomic_rolling_ofstream = wrap_output_stream<atomic_rolling_ofstream, wrap_type::erase_type>;
 }

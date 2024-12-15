@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <stdexcept>
 #include <string_view>
 
 namespace cango::logging {
