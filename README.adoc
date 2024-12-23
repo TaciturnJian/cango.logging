@@ -26,5 +26,24 @@ bool some_module::func() {
 
 == 快速上手
 
-TODO
+[source,c++]
+----
+#include <cango/logging.hpp>
+
+using namespace cango::logging;
+
+namespace my_module {
+    bool my_func(auto& logger) {
+        logger.log("my_func is called, {}", "hello log!");
+        return true;
+    }
+}
+
+int main() {
+    auto stream_ptr = std::make_shared<atomic_ofstream>("log.txt");
+    auto logger_ptr = share_logger<cango_logger>(stream_ptr);
+    logger_ptr->("日志消息: {}", "Hello world!");
+    my_func(*logger_ptr);
+}
+----
 

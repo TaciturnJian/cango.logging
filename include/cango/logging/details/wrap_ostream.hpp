@@ -14,8 +14,10 @@ namespace cango::logging::details {
         }
     };
 
-    template<typename TOStream>
-        requires std::is_base_of_v<std::ostream, TOStream>
+    template<typename object_type>
+    concept is_derived_from_std_ostream = std::derived_from<object_type, std::ostream>;
+
+    template<is_derived_from_std_ostream TOStream>
     struct wrap_ostream : TOStream {
         using impl_type = TOStream;
         using impl_type::impl_type;

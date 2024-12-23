@@ -19,10 +19,10 @@ namespace cango::logging {
         using file_path_provider = std::function<std::filesystem::path()>;
 
     private:
-        file_path_provider path_provider;
-        std::filesystem::path current_file{};
         std::size_t current_size{0};
         std::shared_ptr<std::ofstream> stream{};
+        std::filesystem::path current_file{};
+        file_path_provider path_provider;
 
     public:
         explicit rolling_ofstream(file_path_provider pathProvider) noexcept :

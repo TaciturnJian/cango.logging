@@ -1,16 +1,33 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.12)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+project(cango.logging)
 
-include(ModuleInfo)
-include(InstallInfo)
-include(ProjectUtils)
+option(CANGO_LOGGING_ENABLE_TESTS "Enable tests for cango.logging" OFF)
 
-cango_init_module_info()
-cango_init_install_info()
-cango_init_utils()
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
-project(${module_project_args})
-cango_add_header_only_library()
-cango_configure_tester()
-cango_configure_installer()
+if (NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 20)
+endif()
+
+add_library(cango_logging INTERFACE)
+add_library(cango::logging ALIAS cango_logging)
+target_include_directories(cango_logging INTERFACE include)
+set_target_properties(cango_logging PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+)
+
+if (MSVC)
+    target_compile_options(cango_logging INTERFACE /utf-8)
+endif()
+
+if(CANGO_LOGGING_ENABLE_TESTS)
+    enable_testing()
+    add_executable(availability test/availability.cpp)
+    target_link_libraries(availability PRIVATE cango::logging)
+    set_target_properties(availability PROPERTIES CXX_STANDARD 20)
+    add_test(NAME availability COMMAND availability)
+endif()
